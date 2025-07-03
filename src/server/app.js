@@ -3,12 +3,11 @@ const cors = require("cors");
 const http = require("http"); 
 
 const file_routes = require('./fileRoutes')
-const server = http.createServer(app);
 
 
 const app = express();
 const PORT = 8080;
-
+const server = http.createServer(app);
 
 const corsOptions = {
   origin: 'http://localhost:5173',
