@@ -27,6 +27,33 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   let output = '';
   let errorOutput = '';
 
+  //Run plotting script w/ file route data
+  const baseName = path.basename(wavFilePath, path.extname(wavFilePath));
+  const iqNpyPath = path.join(path.dirname(wavFilePath), baseName + "_iq.npy");
+
+  const plotScriptPath = path.resolve(__dirname, 'plot_data.py');
+  const graphProcess = spawn('python3', [plotScriptPath, iqNpyPath, path.dirname(wavFilePath)]);
+
+  graphProcess.stdout.on('data', (data) => {
+    plotOutput += data.toString();
+  });
+
+  graphProcess.stderr.on('data', (data) => {
+    plotError += data.toString();
+  });
+  graphProcess.on('close', (code) => {
+    if(code === 0) {
+      console.log('Plot generated successfully.');
+      console.log(plotOutput);
+    }else {
+      console.error('Plot script error:');
+      console.error(plotError);
+    }
+  });
+
+  let plotOutput = '';
+  let plotError = '';
+
   pythonProcess.stdout.on('data', (data) => {
     output += data.toString();
   });
@@ -58,6 +85,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
       }
     });
   });
+
 });
 
 module.exports = router; 

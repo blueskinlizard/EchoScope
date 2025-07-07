@@ -4,6 +4,8 @@ import pandas as pd
 from scipy.io.wavfile import write
 from scipy.signal import resample
 
+# INFO: THE PURPOSE OF THIS FILE IS TO BE RAN WHEN CONVERTING RADIOML DATA TO WAV FORMAT, NOT IN ACTUAL PIPELINE/PROD
+
 radio_ml_2016 = pd.read_pickle('../../data/radio_ml_2016/RML2016.10a_dict.pkl')
 
 samples_per_mod = 10   
