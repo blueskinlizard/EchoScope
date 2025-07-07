@@ -67,7 +67,7 @@ export default function FileUploader(){
             {data.length > 0 && (
                 <div className="responseWrapper">
                     <h2>Radio Graph:</h2>
-                    <RadioGraph />
+                    <RadioGraph radioGraphID={data.fileID} />
                     <h2>About This Signal:</h2>
                     <InformationSegment />
                 </div>

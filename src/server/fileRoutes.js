@@ -31,9 +31,6 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   const baseName = path.basename(wavFilePath, path.extname(wavFilePath));
   const iqNpyPath = path.join(path.dirname(wavFilePath), baseName + "_iq.npy");
 
-
-  
-
   let plotOutput = '';
   let plotError = '';
 
@@ -49,7 +46,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
     //Generate our graph once we know that our previous script is done processing
     const plotScriptPath = path.resolve(__dirname, 'plot_data.py');
     const graphProcess = spawn('python3', [plotScriptPath, iqNpyPath, path.dirname(wavFilePath)]);
-    
+
     graphProcess.stdout.on('data', (data) => {
       plotOutput += data.toString();
     });
@@ -67,7 +64,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
       }
     });
 
-    // Delete our .wav file after conversion into echoscope format
+    // Delete our .wav file after conversion into echoscope format/graphing
     fs.unlink(wavFilePath, (err) => {
       if (err) {
         console.error(`Error deleting .wav file: ${err.message}`);
@@ -79,6 +76,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
         res.json({
           message: 'File processed successfully',
           file: req.file,
+          fileID: baseName,
           output: output.trim()
         });
       } else {
@@ -91,5 +89,16 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   });
 
 });
+
+router.post('/fetchIQGraph', async(req, res) =>{
+  const graphID = req.body;
+  const graphPath = path.join(__dirname, '..', 'uploads', `${graphID}_iq.png`);
+  if(fs.existsSync(graphPath)) {
+    res.sendFile(graphPath);
+  }else {
+    res.status(404).json({ error: 'Image not found' });
+  }
+
+})
 
 module.exports = router; 
