@@ -39,7 +39,7 @@ export default function FileUploader(){
                     body: formData,
                 });
                 const data = await res.json();
-                setData(data);
+                setTimeout(() => setData(data), 500);
                 setError(""); 
                 console.log("Upload response:", data);
             }catch(error) {
@@ -64,13 +64,19 @@ export default function FileUploader(){
             )}
             <input type="file" accept=".wav" placeholder="Upload .wav file" onChange={target => {setFile(target.target.files[0]); console.log("Set file state")}}/>
             <button onClick={handleUpload}>Upload</button>
-            {data.length > 0 && (
-                <div className="responseWrapper">
-                    <h2>Radio Graph:</h2>
-                    <RadioGraph radioGraphID={data.fileID} />
-                    <h2>About This Signal:</h2>
-                    <InformationSegment />
-                </div>
+            {data && data.fileID && (
+                <>
+                    <h1>Sound information: </h1>
+                    <div className="radioGraph">
+                        <h2>Radio Graph:</h2>
+                        <RadioGraph radioGraphID={data.fileID} />
+                    </div>
+                    
+                    <div className="responseWrapper">
+                        <h2>About This Signal:</h2>
+                        <InformationSegment />
+                    </div>
+                </>
             )}
         </div>
     )

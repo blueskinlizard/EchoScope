@@ -6,6 +6,7 @@ export default function RadioGraph({ radioGraphID }) {
 
     useEffect(() => {
         const fetchRadioGraph = async () => {
+            console.log("Fetching radio graph function called");
             try{
                 const response = await fetch('http://localhost:8080/api/fetchIQGraph', {
                     method: 'POST',
@@ -13,7 +14,7 @@ export default function RadioGraph({ radioGraphID }) {
                         "Content-Type": "application/json",
                     },
                     credentials: "include",
-                    body: JSON.stringify({ radioGraphID })
+                    body: JSON.stringify({ graphID: radioGraphID })
                 });
 
                 if(!response.ok) throw new Error("Image fetch failed");
@@ -45,9 +46,9 @@ export default function RadioGraph({ radioGraphID }) {
     }, [imageURL]);
 
     return (
-        <div className="RadioGraph">
+        <>
             <h3>Radio Graph</h3>
             <canvas ref={canvasRef}></canvas>
-        </div>
+        </>
     );
 }
