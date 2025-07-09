@@ -16,7 +16,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   const wavFilePath = path.resolve(req.file.path);
   const baseName = path.basename(wavFilePath, path.extname(wavFilePath));
   const iqNpyPath = path.join(path.dirname(wavFilePath), baseName + '_iq.npy');
-  const scriptPath = path.resolve(__dirname, '../data_conversion/wav_to_model.py');
+  const scriptPath = path.resolve(__dirname, './python_processes/wav_to_model.py');  
 
   const pythonProcess = spawn('python3', [scriptPath, wavFilePath]);
 
@@ -31,15 +31,39 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   });
 
   pythonProcess.on('close', (code) => {
-    if (code !== 0) {
+    if(code !== 0) {
       fs.unlink(wavFilePath, () => {});
+
       return res.status(500).json({
         message: 'Error processing file',
         error: errorOutput.trim(),
       });
     }
+    const generateSpecScript = path.resolve(__dirname, './python_processes/iq_to_spect.py');
 
-    const plotScriptPath = path.resolve(__dirname, 'plot_data.py');
+    const genSpec = spawn('python3', [generateSpecScript, iqNpyPath]);
+
+    let genSpecOutput = '', genSpecError = '';
+
+    genSpec.stdout.on('data', (data) => {
+      genSpecOutput += data.toString();
+    });
+
+    genSpec.stderr.on('data', (data) => {
+      genSpecError += data.toString();
+    });
+
+    genSpec.on('close', (specCode) => {
+      if (specCode !== 0) {
+        fs.unlink(wavFilePath, () => {});
+        return res.status(500).json({
+          message: 'Error generating spectrogram',
+          error: genSpecError.trim(),
+        });
+      }
+    })
+
+    const plotScriptPath = path.resolve(__dirname, './python_processes/plot_data.py'); 
     const graphProcess = spawn('python3', [plotScriptPath, iqNpyPath, path.dirname(wavFilePath)]);
 
     let plotError = '';
@@ -50,7 +74,7 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
 
     graphProcess.on('close', (plotCode) => {
       fs.unlink(wavFilePath, (err) => {
-        if (err) console.error(`Error deleting .wav file: ${err.message}`);
+        if(err) console.error(`Error deleting .wav file: ${err.message}`);
         else console.log(`Deleted uploaded file: ${wavFilePath}`);
       });
 
@@ -79,7 +103,7 @@ router.post('/fetchIQGraph', async (req, res) => {
 
   console.log(`Looking for image at: ${graphPath}`);
   
-  if (fs.existsSync(graphPath)) {
+  if(fs.existsSync(graphPath)) {
     res.sendFile(path.resolve(graphPath));
   } else {
     res.status(404).json({ error: 'Image not found', path: graphPath});
