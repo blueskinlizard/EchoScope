@@ -6,7 +6,8 @@ from scipy.signal import spectrogram
 def generate_spectrogram(iq_sample, fs=1.0, nperseg=32, noverlap=24, 
                          noise_std=0.01, shift_max=2, pad_to=256):
     iq_sample = iq_sample / (np.linalg.norm(iq_sample, axis=1, keepdims=True) + 1e-10)
-    # Same function parameters for spectrogram generation as seen in the notebook
+
+    # Same function parameters for spectrogram generation as seen in the notebook (Check it out btw!)
 
     if pad_to > iq_sample.shape[1]:
         pad_width = pad_to - iq_sample.shape[1]
@@ -25,6 +26,10 @@ def generate_spectrogram(iq_sample, fs=1.0, nperseg=32, noverlap=24,
 def standardize_spectrogram(spec, mean_path, std_path):
     global_mean = np.load(mean_path)
     global_std = np.load(std_path)
+
+    print('Global mean:', global_mean, type(global_mean), global_mean.shape if hasattr(global_mean, 'shape') else 'scalar')
+    print('Global std:', global_std, type(global_std), global_std.shape if hasattr(global_std, 'shape') else 'scalar')
+
     return (spec - global_mean) / (global_std + 1e-9)
 
 if __name__ == "__main__":
@@ -40,10 +45,11 @@ if __name__ == "__main__":
     # Current program path
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Standardize spectrogram using global stats 
+    # Standardize spectrogram using global stats (as saved in our notebook during data processing)
     mean_path = os.path.join(script_dir, 'global_mean.npy')
     std_path = os.path.join(script_dir, 'global_std.npy')
 
+    
     if not os.path.exists(mean_path) or not os.path.exists(std_path):
         raise FileNotFoundError("global_mean.npy or global_std.npy not found in 'data_conversion'")
 

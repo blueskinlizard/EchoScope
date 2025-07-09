@@ -35,6 +35,16 @@ def load_wav_to_iq_array(filename, target_length=128):
     # Convert into (2, 128) size to be able to be used by echoscope model
     iq_array = np.stack([I_resized, Q_resized], axis=0)
 
+    I_resized = resize_channel(I)
+    Q_resized = resize_channel(Q)
+
+    iq_array = np.stack([I_resized, Q_resized], axis=0)  
+
+    for ch in range(iq_array.shape[0]):
+        mean = iq_array[ch].mean()
+        std = iq_array[ch].std()
+        iq_array[ch] = (iq_array[ch] - mean) / (std + 1e-10)
+
     return iq_array, sample_rate
 
 if __name__ == "__main__":

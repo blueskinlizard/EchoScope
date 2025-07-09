@@ -16,9 +16,15 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   const wavFilePath = path.resolve(req.file.path);
   const baseName = path.basename(wavFilePath, path.extname(wavFilePath));
   const iqNpyPath = path.join(path.dirname(wavFilePath), baseName + '_iq.npy');
-  const scriptPath = path.resolve(__dirname, './python_processes/wav_to_model.py');  
+  const spectrogramPath = path.join(path.dirname(wavFilePath), baseName + '_iq_spectrogram.npy');
 
-  const pythonProcess = spawn('python3', [scriptPath, wavFilePath]);
+  const wavToIqScript = path.resolve(__dirname, './python_processes/wav_to_model.py');
+  const iqToSpecScript = path.resolve(__dirname, './python_processes/iq_to_spect.py');
+  const inferenceScript = path.resolve(__dirname, './python_processes/run_model.py');
+  const plotScript = path.resolve(__dirname, './python_processes/plot_data.py');
+  const modelPath = path.resolve(__dirname, './python_processes/fusion_model_full.pth');
+
+  const pythonProcess = spawn('python3', [wavToIqScript, wavFilePath]);
 
   let output = '', errorOutput = '';
 
@@ -33,69 +39,65 @@ router.post('/uploadSound', upload.single('file'), (req, res) => {
   pythonProcess.on('close', (code) => {
     if(code !== 0) {
       fs.unlink(wavFilePath, () => {});
-
       return res.status(500).json({
-        message: 'Error processing file',
+        message: 'Error processing IQ data',
         error: errorOutput.trim(),
       });
     }
-    const generateSpecScript = path.resolve(__dirname, './python_processes/iq_to_spect.py');
+    const genSpec = spawn('python3', [iqToSpecScript, iqNpyPath]);
 
-    const genSpec = spawn('python3', [generateSpecScript, iqNpyPath]);
-
-    let genSpecOutput = '', genSpecError = '';
-
-    genSpec.stdout.on('data', (data) => {
-      genSpecOutput += data.toString();
-    });
-
-    genSpec.stderr.on('data', (data) => {
-      genSpecError += data.toString();
-    });
+    let genSpecError = '';
+    genSpec.stderr.on('data', (data) => { genSpecError += data.toString(); });
 
     genSpec.on('close', (specCode) => {
-      if (specCode !== 0) {
+      if(specCode !== 0) {
         fs.unlink(wavFilePath, () => {});
         return res.status(500).json({
           message: 'Error generating spectrogram',
           error: genSpecError.trim(),
         });
       }
-    })
 
-    const plotScriptPath = path.resolve(__dirname, './python_processes/plot_data.py'); 
-    const graphProcess = spawn('python3', [plotScriptPath, iqNpyPath, path.dirname(wavFilePath)]);
+      const inferProcess = spawn('python3', [inferenceScript, iqNpyPath, spectrogramPath, modelPath]);
 
-    let plotError = '';
+      let inferOut = '', inferErr = '';
+      inferProcess.stdout.on('data', (data) => { inferOut += data.toString(); });
+      inferProcess.stderr.on('data', (data) => { inferErr += data.toString(); });
 
-    graphProcess.stderr.on('data', (data) => {
-      plotError += data.toString();
-    });
+      inferProcess.on('close', (inferCode) => {
+        if(inferCode !== 0) {
+          return res.status(500).json({
+            message: 'Error during model inference',
+            error: inferErr.trim(),
+          });
+        }
+        const graphProcess = spawn('python3', [plotScript, iqNpyPath, path.dirname(wavFilePath)]);
 
-    graphProcess.on('close', (plotCode) => {
-      fs.unlink(wavFilePath, (err) => {
-        if(err) console.error(`Error deleting .wav file: ${err.message}`);
-        else console.log(`Deleted uploaded file: ${wavFilePath}`);
-      });
+        let plotError = '';
+        graphProcess.stderr.on('data', (data) => { plotError += data.toString(); });
 
-      if(plotCode !== 0) {
-        console.error('Plot script error:', plotError);
-        return res.status(500).json({
-          message: 'Error generating plot',
-          error: plotError.trim(),
+        graphProcess.on('close', (plotCode) => {
+          fs.unlink(wavFilePath, () => {});
+
+          if(plotCode !== 0) {
+            return res.status(500).json({
+              message: 'Error generating IQ plot',
+              error: plotError.trim(),
+            });
+          }
+
+          res.json({
+            message: 'File processed and analyzed successfully',
+            file: req.file,
+            fileID: baseName,
+            prediction: JSON.parse(inferOut.trim()),
+          });
         });
-      }
-
-      res.json({
-        message: 'File processed successfully',
-        file: req.file,
-        fileID: baseName,
-        output: output.trim(),
       });
-
     });
   });
 });
+
 
 router.post('/fetchIQGraph', async (req, res) => {
   const { graphID } = req.body;
