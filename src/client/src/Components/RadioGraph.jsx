@@ -33,7 +33,7 @@ export default function RadioGraph({ radioGraphID }) {
     }, [radioGraphID]);
 
     useEffect(() => {
-        if (imageURL && canvasRef.current) {
+        if(imageURL && canvasRef.current) {
             const ctx = canvasRef.current.getContext("2d");
             const img = new Image();
             img.onload = () => {

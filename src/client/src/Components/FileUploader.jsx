@@ -5,6 +5,7 @@ export default function FileUploader(){
     const [file, setFile] = useState();
     const [data, setData] = useState([]);
     const [error, setError] = useState();
+    const [predictedClass, setPredictedClass] = useState();
 
     const handleUpload = async () => {
         console.log("Handling upload...");
@@ -74,7 +75,7 @@ export default function FileUploader(){
                     
                     <div className="responseWrapper">
                         <h2>About This Signal:</h2>
-                        <InformationSegment />
+                        <InformationSegment predictions={data.prediction.class_probabilities} predicted_class={data.prediction.predicted_class}/>
                     </div>
                 </>
             )}
