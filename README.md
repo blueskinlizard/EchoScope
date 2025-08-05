@@ -44,3 +44,7 @@
 ### 🧪 Tools & Utilities
 - **Jupyter Notebook** – For model prototyping and analysis
 ---
+## Screenshots
+<img width="1461" height="1107" alt="image" src="https://github.com/user-attachments/assets/22e99467-9481-40cf-9100-2cc4f293dfa6" />
+<img width="1405" height="1114" alt="image" src="https://github.com/user-attachments/assets/5772f52c-f1c7-4c0a-be7a-b4043d1a48aa" />
+
