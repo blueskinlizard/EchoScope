@@ -4,14 +4,14 @@
 
 ## EchoScope is a high-performance deep learning system for classifying raw IQ radio signals and spectrograms. 
 
-#### EchoScope uses a dual-branch architecture—LSTMs for IQ data and Transformers for spectrograms—with a web dashboard for `.wav` uploads, signal visualization, and real-time predictions.
+#### EchoScope uses a dual-branch architecture: LSTMs for IQ data and Transformers for spectrograms—with a web dashboard for `.wav` uploads, signal visualization, and real-time predictions.
 
 ---
 
 ## 🚀 Features
 
 - **Dual-Branch Model**
-  - **IQ Branch**: Bidirectional LSTM/GRU over time-series IQ data.
+  - **IQ Branch**: Bidirectional LSTM over time-series IQ data.
   - **Spectrogram Branch**: Transformer-based patch encoder over spectrogram inputs.
 
 - **Web Dashboard**
