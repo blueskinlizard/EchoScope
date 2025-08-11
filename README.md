@@ -1,11 +1,6 @@
 # EchoScope
 
 **Smart Radio Signal Classification using Deep Learning**
-
-## EchoScope is a high-performance deep learning system for classifying raw IQ radio signals and spectrograms. 
-
-#### EchoScope uses a dual-branch architecture: LSTMs for IQ data and Transformers for spectrograms, with a web dashboard for `.wav` uploads, signal visualization, and real-time predictions.
-
 ---
 
 ## 🚀 Features
