@@ -1,7 +1,6 @@
 # EchoScope
 
 **Smart Radio Signal Classification using Deep Learning**
----
 
 ## 🚀 Features
 
